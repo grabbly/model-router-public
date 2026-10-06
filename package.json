@@ -1,0 +1,29 @@
+{
+  "name": "model-router",
+  "version": "1.0.0",
+  "description": "Adaptive OpenAI-compatible model router with failover, budgets and loop protection",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "tsx --test tests/**/*.test.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "dotenv": "^16.4.7",
+    "fastify": "^4.28.1",
+    "nodemailer": "^10.0.13",
+    "pino": "^9.6.0",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/nodemailer": "^8.0.2",
+    "pino-pretty": "^13.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "license": "MIT"
+}

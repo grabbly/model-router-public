@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>model-router: подключение</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --ground: #f5f7f8;
+    --surface: #ffffff;
+    --ink: #151a1f;
+    --muted: #5a6570;
+    --line: #dde3e7;
+    --accent: #0c7a6b;
+    --accent-soft: #e2f2ef;
+    --code-bg: #eef2f4;
+    --warn: #9a5b00;
+    --warn-soft: #fbf0dc;
+    --bad: #b3261e;
+    --bad-soft: #fbe6e4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0f1316;
+      --surface: #161b1f;
+      --ink: #e5eaee;
+      --muted: #97a3ad;
+      --line: #28313a;
+      --accent: #3fc3ad;
+      --accent-soft: #123330;
+      --code-bg: #1c2328;
+      --warn: #e6a443;
+      --warn-soft: #33260f;
+      --bad: #f0857d;
+      --bad-soft: #3a1b19;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0f1316;
+    --surface: #161b1f;
+    --ink: #e5eaee;
+    --muted: #97a3ad;
+    --line: #28313a;
+    --accent: #3fc3ad;
+    --accent-soft: #123330;
+    --code-bg: #1c2328;
+    --warn: #e6a443;
+    --warn-soft: #33260f;
+    --bad: #f0857d;
+    --bad-soft: #3a1b19;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 15px/1.6 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 16px;
+  }
+  code, pre, .mono { font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+  .shell {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 48px;
+    padding-block: 40px 80px;
+  }
+  nav.toc {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 24px);
+    align-self: start;
+    font-size: 13.5px;
+  }
+  nav.toc .brand { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--accent); margin-bottom: 14px; display: block; text-decoration: none; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  nav.toc a { color: var(--muted); text-decoration: none; display: block; padding: 3px 0 3px 10px; border-left: 2px solid transparent; }
+  nav.toc a:hover { color: var(--ink); border-left-color: var(--line); }
+
+  main { min-width: 0; }
+  header.intro { margin-bottom: 36px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 34px; line-height: 1.15; margin: 6px 0 12px; font-weight: 700; text-wrap: balance; letter-spacing: -.01em; }
+  h2 { font-size: 22px; line-height: 1.25; margin: 0 0 12px; font-weight: 600; text-wrap: balance; }
+  h3 { font-size: 16px; margin: 22px 0 8px; font-weight: 600; }
+  p, li { max-width: 68ch; }
+  .lede { font-size: 17px; color: var(--muted); max-width: 62ch; margin: 0; }
+
+  section { padding-block: 30px; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
+
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 24px; }
+  .facts div { background: var(--surface); padding: 12px 14px; }
+  .facts dt { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .facts dd { margin: 2px 0 0; font-family: "IBM Plex Mono", monospace; font-size: 14px; overflow-wrap: anywhere; }
+
+  :not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+
+  .code { position: relative; margin: 12px 0 16px; }
+  .code .lang { position: absolute; top: 8px; left: 14px; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .code button { position: absolute; top: 6px; right: 6px; font: 500 12px "IBM Plex Sans", sans-serif; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 3px 9px; cursor: pointer; }
+  .code button:hover { color: var(--ink); }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 32px 14px 14px; margin: 0; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+
+  .table-wrap { overflow-x: auto; margin: 12px 0 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; background: var(--ground); white-space: nowrap; }
+  td code { white-space: nowrap; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .note { border-radius: 8px; padding: 12px 14px; margin: 14px 0; font-size: 14.5px; }
+  .note p { margin: 0; max-width: none; }
+  .note.info { background: var(--accent-soft); }
+  .note.warn { background: var(--warn-soft); }
+  .note.bad { background: var(--bad-soft); }
+  .note strong:first-child { display: block; margin-bottom: 2px; }
+
+  .pill { display: inline-block; font: 500 11.5px "IBM Plex Mono", monospace; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); }
+
+  ul.tight { padding-left: 20px; margin: 8px 0; }
+  ul.tight li { margin: 3px 0; }
+
+  footer { color: var(--muted); font-size: 13px; padding-top: 24px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 820px) {
+    .shell { grid-template-columns: 1fr; gap: 16px; padding-block: 24px 60px; }
+    nav.toc { position: static; }
+    nav.toc ol { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    h1 { font-size: 28px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav class="toc" aria-label="Содержание">
+    <a class="brand" href="#top">model-router</a>
+    <ol>
+      <li><a href="#checklist">Подключение за 5 шагов</a></li>
+      <li><a href="#start">Быстрый старт</a></li>
+      <li><a href="#auth">Ключ доступа</a></li>
+      <li><a href="#tiers">Выбор модели</a></li>
+      <li><a href="#meta">Заголовки: кто и откуда</a></li>
+      <li><a href="#tools">Инструменты и мышление</a></li>
+      <li><a href="#vision">Картинки</a></li>
+      <li><a href="#response">Что приходит в ответе</a></li>
+      <li><a href="#limits">Лимиты и защита</a></li>
+      <li><a href="#quota">Квота по запросу</a></li>
+      <li><a href="#errors">Ошибки</a></li>
+      <li><a href="#practice">Как не упереться в лимиты</a></li>
+      <li><a href="#service">Служебные адреса</a></li>
+    </ol>
+  </nav>
+
+  <main id="top">
+    <header class="intro">
+      <div class="eyebrow">Документация для подключения</div>
+      <h1>Подключение к model-router</h1>
+      <p class="lede">model-router — шлюз к языковым моделям, совместимый с OpenAI API. Подходит любая библиотека, которая умеет работать с OpenAI Chat Completions: достаточно сменить адрес, ключ и название модели. Какая модель ответит на самом деле, выбирает роутер. Если модель недоступна, он сам переключается на следующую.</p>
+      <dl class="facts">
+        <div><dt>Адрес</dt><dd>https://router.example.com/v1</dd></div>
+        <div><dt>Авторизация</dt><dd>Authorization: Bearer &lt;ключ&gt;</dd></div>
+        <div><dt>Метод</dt><dd>POST /v1/chat/completions</dd></div>
+      </dl>
+    </header>
+
+    <section id="checklist">
+      <h2>Подключение за 5 шагов</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Шаг</th><th>Что сделать</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Получите ключ проекта (<code>pft_…</code>) у владельца роутера и положите его в переменную окружения, например <code>ROUTER_TOKEN</code>. В код и в репозиторий ключ не кладите.</td></tr>
+          <tr><td class="num">2</td><td>В своём OpenAI-клиенте укажите адрес <code>https://router.example.com/v1</code> и этот ключ.</td></tr>
+          <tr><td class="num">3</td><td>Вместо названия модели укажите тир: <code>text-high</code>, <code>text-low</code> и т. д. (<a href="#tiers">какой выбрать</a>).</td></tr>
+          <tr><td class="num">4</td><td>Добавьте в каждый запрос три заголовка: <code>x-router-app</code>, <code>x-router-agent</code>, <code>x-router-session</code> (<a href="#meta">как их заполнять</a>). <strong>С 1 октября 2026 без них запрос не пройдёт.</strong></td></tr>
+          <tr><td class="num">5</td><td>Отправьте тестовый запрос и проверьте заголовки ответа. Если пришёл <code>x-router-warning: missing-metadata</code>, какой-то из трёх заголовков не дошёл. Ответ <code>429 loop_detected</code> не повторяйте автоматически (<a href="#limits">почему</a>).</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="start">
+      <h2>Быстрый старт</h2>
+      <p>Замените <code>$ROUTER_TOKEN</code> на выданный вам ключ, а <code>myproject</code> — на название вашего проекта.</p>
+
+      <div class="code"><span class="lang">curl</span><button type="button" data-copy>Копировать</button><pre><code>curl -sS https://router.example.com/v1/chat/completions \
+  -H "Authorization: Bearer $ROUTER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "x-router-app: myproject" \
+  -H "x-router-agent: chat" \
+  -H "x-router-session: conv-1842" \
+  -d '{
+    "model": "text-low",
+    "messages": [{"role": "user", "content": "Привет!"}]
+  }'</code></pre></div>
+
+      <div class="code"><span class="lang">JavaScript · openai</span><button type="button" data-copy>Копировать</button><pre><code>import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.ROUTER_TOKEN,
+  baseURL: 'https://router.example.com/v1',
+  // app и agent не меняются — задайте один раз
+  defaultHeaders: { 'x-router-app': 'myproject', 'x-router-agent': 'chat' },
+});
+
+const res = await client.chat.completions.create(
+  { model: 'text-high', messages: [{ role: 'user', content: 'Привет!' }] },
+  // session — свой для каждого диалога или задачи
+  { headers: { 'x-router-session': conversationId } },
+);
+console.log(res.choices[0].message.content);</code></pre></div>
+
+      <div class="code"><span class="lang">Python · openai</span><button type="button" data-copy>Копировать</button><pre><code>import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ROUTER_TOKEN"],
+    base_url="https://router.example.com/v1",
+    default_headers={"x-router-app": "myproject", "x-router-agent": "chat"},
+)
+
+res = client.chat.completions.create(
+    model="text-high",
+    messages=[{"role": "user", "content": "Привет!"}],
+    extra_headers={"x-router-session": conversation_id},
+)
+print(res.choices[0].message.content)</code></pre></div>
+
+      <p>Поддерживаются потоковые ответы (<code>"stream": true</code>, SSE) и обычный JSON. В поле <code>model</code> ответа приходит название тира, которое вы запросили, а не реальная модель.</p>
+    </section>
+
+    <section id="auth">
+      <h2>Ключ доступа</h2>
+      <p>Ключ выглядит так: <code>pft_&lt;id-проекта&gt;.&lt;подпись&gt;</code>. Он выдаётся на один проект и идентифицирует вас в роутере: по нему считаются лимиты и расход.</p>
+      <ul class="tight">
+        <li>Передавайте его в <code>Authorization: Bearer &lt;ключ&gt;</code> или в <code>X-API-Key: &lt;ключ&gt;</code>.</li>
+        <li>Храните ключ только на сервере: в переменных окружения или менеджере секретов. Не встраивайте его в браузерный код или мобильное приложение.</li>
+        <li>Один ключ — один проект. Если нужен второй проект или отдельная среда, попросите отдельный ключ. Не передавайте свой ключ другим.</li>
+      </ul>
+    </section>
+
+    <section id="tiers">
+      <h2>Выбор модели</h2>
+      <p>Вместо реальной модели указывается <strong>тир</strong>, то есть нужная возможность. Роутер сам выбирает живую и быструю модель под этот тир. Если указать реальное имя модели, например <code>gemini-…</code>, запрос вернётся с ошибкой.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Тир (<code>model</code>)</th><th>Для чего</th><th>Контент</th></tr></thead>
+        <tbody>
+          <tr><td><code>text-high</code></td><td>Основной диалог, рассуждения, работа с инструментами</td><td><span class="pill ok">безопасный</span></td></tr>
+          <tr><td><code>text-high-think</code></td><td>Чат с обязательным рассуждением (MiniMax-M3.1-Flash-Preview, reasoning_effort по умолчанию medium; можно передать свой low…max)</td><td><span class="pill ok">безопасный</span></td></tr>
+          <tr><td><code>text-low</code></td><td>Быстрые и дешёвые задачи: классификация, короткие ответы, рутина</td><td><span class="pill ok">безопасный</span></td></tr>
+          <tr><td><code>text-summarize</code></td><td>Длинный вход (от ~30 тыс. токенов) и длинный ответ: сжатие истории, пересказ документов</td><td><span class="pill ok">безопасный</span></td></tr>
+          <tr><td><code>vision-high</code></td><td>Распознавание картинок: фото, текст на изображении</td><td><span class="pill ok">безопасный</span></td></tr>
+          <tr><td><code>vision-low</code></td><td>Быстрое и простое описание картинок</td><td><span class="pill ok">безопасный</span></td></tr>
+          <tr><td><code>text-uncensored-high</code> / <code>-low</code></td><td>Текст без ограничений, 18+</td><td><span class="pill warn">18+</span></td></tr>
+          <tr><td><code>vision-uncensored-high</code> / <code>-low</code></td><td>Картинки без ограничений, 18+</td><td><span class="pill warn">18+</span></td></tr>
+        </tbody>
+      </table></div>
+      <p>Актуальный список тиров всегда можно получить через <code>GET /v1/models</code>.</p>
+      <div class="note info"><p><strong>Тиры 18+ настраивать не нужно.</strong> Нужную системную инструкцию роутер добавляет сам. Если вы пришлёте своё <code>system</code>-сообщение, оно сохранится и объединится с инструкцией роутера. Чтобы отключить добавление для отдельного запроса, передайте заголовок <code>x-router-no-overlay: 1</code>. Администратор также может отключить оверлей для всего клиента целиком; в этом случае принудительно включить его на один запрос можно заголовком <code>x-router-overlay: 1</code> (при одновременной передаче приоритет сохраняется за <code>x-router-no-overlay</code>).</p></div>
+    </section>
+
+    <section id="meta">
+      <h2>Заголовки: кто и откуда</h2>
+      <p>Каждый запрос к <code>/v1/chat/completions</code> передаёт три заголовка. По ним видно, какой проект, какой его агент и в рамках какого диалога или задачи отправил запрос. На этом построены защита от зацикливания (блокируется одна сессия, а не весь проект) и разбор расхода по агентам.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Заголовок</th><th>Что это</th><th>Как часто меняется</th><th>Пример</th></tr></thead>
+        <tbody>
+          <tr><td><code>x-router-app</code></td><td>Ваш проект. Короткое постоянное имя, латиницей.</td><td>никогда</td><td><code>myproject</code></td></tr>
+          <tr><td><code>x-router-agent</code></td><td>Какая часть проекта отправила запрос: бот, фоновый воркер, суммаризатор, распознавание картинок.</td><td>одно значение на каждую роль в коде</td><td><code>chat</code>, <code>worker</code>, <code>summarizer</code>, <code>vision</code></td></tr>
+          <tr><td><code>x-router-session</code></td><td>Один диалог пользователя или одна задача агента. Все запросы этого диалога или задачи, включая все шаги вызова инструментов, идут с одним значением.</td><td>новое значение на каждый диалог или задачу</td><td><code>conv-1842</code>, <code>task-77</code></td></tr>
+          <tr><td><code>x-router-user</code></td><td>(Опционально) ID конечного пользователя для раздельного учёта лимитов внутри проекта. Если не передан, берётся часть <code>x-router-session</code> до первого двоеточия (например, <code>user-1:chat:123</code> &rarr; <code>user-1</code>).</td><td>на каждого пользователя</td><td><code>user-1842</code>, <code>uuid-42</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Как заполнить для типичных сценариев</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Сценарий</th><th><code>x-router-agent</code></th><th><code>x-router-session</code></th></tr></thead>
+        <tbody>
+          <tr><td>Чат-бот отвечает пользователю</td><td><code>chat</code></td><td>id разговора: <code>conv-&lt;id&gt;</code></td></tr>
+          <tr><td>Агент с инструментами (много шагов на одно сообщение)</td><td><code>agent</code></td><td>id задачи, общий для всех шагов: <code>task-&lt;id&gt;</code></td></tr>
+          <tr><td>Фоновая задача, воркер, рассылка</td><td><code>worker</code> или имя задачи</td><td>id конкретного запуска: <code>job-&lt;id&gt;</code></td></tr>
+          <tr><td>Сжатие истории, пересказ</td><td><code>summarizer</code></td><td>id диалога, историю которого сжимаете</td></tr>
+          <tr><td>Распознавание картинки</td><td><code>vision</code></td><td>id диалога или загрузки</td></tr>
+          <tr><td>Разовый запрос вне диалога (проверка, cron)</td><td>имя скрипта</td><td>id запуска, например дата и время</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Правила</h3>
+      <ul class="tight">
+        <li><strong>Не делайте новую сессию на каждый запрос.</strong> Тогда защита от зацикливания не увидит цикл, и ваш агент сможет израсходовать весь лимит проекта.</li>
+        <li><strong>Не кладите в сессию личные данные</strong>: email, телефон, имя. Нужен внутренний непрозрачный id.</li>
+        <li>Если вы параллельно отправляете одинаковые запросы (замеры, пакетная обработка), давайте каждому свою сессию. Иначе 3 одинаковых запроса подряд в одной сессии сработают как цикл.</li>
+        <li>Допустимые символы: <code>A–Z a–z 0–9 . _ : @ / -</code>, не длиннее 128. Остальные символы роутер отбрасывает.</li>
+        <li>Как задать заголовки в OpenAI SDK: <code>app</code> и <code>agent</code> — один раз в <code>defaultHeaders</code> / <code>default_headers</code>; <code>session</code> — в каждом запросе (<a href="#start">примеры выше</a>).</li>
+      </ul>
+      <div class="note warn"><p><strong>С 1 октября 2026 заголовки обязательны.</strong> До этой даты запросы без них проходят, а в ответе приходит заголовок <code>x-router-warning: missing-metadata</code>. С 01.10 такой запрос получит ошибку <code>400 missing_metadata</code>.</p></div>
+    </section>
+
+    <section id="tools">
+      <h2>Инструменты и мышление</h2>
+      <p><code>tools</code> и <code>tool_choice</code> передаются в формате OpenAI и доходят до модели без изменений. <code>tool_choice</code> может быть строкой (<code>auto</code>, <code>required</code>, <code>none</code>) или объектом <code>{"type":"function","function":{"name":"…"}}</code>. Работают и потоковые ответы, и обычный JSON.</p>
+      <ul class="tight">
+        <li><strong>Передавайте историю вызовов целиком:</strong> сообщения assistant с <code>tool_calls</code> и ответы с ролью <code>tool</code>. Если оставить в истории только тексты ответов, модель начинает копировать прошлые ответы вместо того, чтобы вызвать инструмент.</li>
+        <li>У основной модели (MiniMax) мышление по умолчанию выключено, так она отвечает быстрее. Но когда в запросе есть <code>tools</code>, роутер его включает: без мышления модель часто игнорирует <code>tool_choice</code>. Если скорость важнее надёжного вызова инструментов, передайте <code>thinking: {"type": "disabled"}</code> (или <code>reasoning_effort: "none"</code>), и мышление останется выключенным. Сделать это поведением по умолчанию для всего клиента может администратор.</li>
+        <li><strong>Мышление можно запросить в том формате, к которому привыкли.</strong> Роутер понимает все распространённые варианты и сам переводит их для модели. <code>adaptive</code> — модель сама решает, сколько думать; <code>disabled</code> — не думать.</li>
+      </ul>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Поле</th><th>Включить</th><th>Выключить</th></tr></thead>
+        <tbody>
+          <tr><td><code>thinking</code> (Anthropic, MiniMax)</td><td><code>{"type":"enabled"}</code>, <code>{"type":"adaptive"}</code>, <code>true</code></td><td><code>{"type":"disabled"}</code>, <code>false</code></td></tr>
+          <tr><td><code>reasoning_effort</code> (OpenAI)</td><td><code>low</code>, <code>medium</code>, <code>high</code></td><td><code>none</code>, <code>minimal</code></td></tr>
+          <tr><td><code>reasoning</code> (Responses API, OpenRouter)</td><td><code>{"effort":"high"}</code>, <code>{"enabled":true}</code></td><td><code>{"enabled":false}</code></td></tr>
+          <tr><td><code>enable_thinking</code> (Qwen, vLLM)</td><td><code>true</code></td><td><code>false</code></td></tr>
+          <tr><td><code>think</code> (Ollama)</td><td><code>true</code>, <code>"high"</code></td><td><code>false</code></td></tr>
+          <tr><td><code>thinking_budget</code> (Gemini, в <code>extra_body.google.thinking_config</code>)</td><td>больше 0 или <code>-1</code></td><td><code>0</code></td></tr>
+        </tbody>
+      </table></div>
+      <ul class="tight">
+        <li>Если прислано несколько полей, действует первое по таблице. Бюджеты (<code>budget_tokens</code>, <code>thinking_budget</code>) только включают или выключают мышление, сколько думать, модель решает сама.</li>
+        <li><strong>Рассуждения модели в ответ не попадают:</strong> в <code>content</code> остаётся только сам ответ. Чтобы получить их в полях <code>reasoning_content</code> и <code>reasoning_details</code>, передайте заголовок <code>x-router-reasoning: 1</code> или <code>"include_reasoning": true</code> в теле. В потоке рассуждение тогда идёт кадрами <code>delta.reasoning_content</code>. Без этого кадры, где модель только думает, приходят пустыми (<code>{"delta":{"role":"assistant"}}</code>), но не чаще раза в секунду: это признак, что модель работает.</li>
+        <li><strong>Обрыв потока виден явно:</strong> если апстрим замолчал или закрыл поток, не закончив ответ, последним кадром приходит <code>data: {"error":{"code":"upstream_stream_error" | "upstream_stream_incomplete", …}}</code>, затем <code>data: [DONE]</code>. Такой ответ считайте неудачным, а не пустым.</li>
+      </ul>
+    </section>
+
+    <section id="vision">
+      <h2>Картинки</h2>
+      <p>Картинка передаётся в формате OpenAI: частью <code>content</code> с типом <code>image_url</code>. Надёжнее всего вкладывать её прямо в запрос как <code>data:</code>-URI (base64).</p>
+      <div class="code"><span class="lang">JSON</span><button type="button" data-copy>Копировать</button><pre><code>{
+  "model": "vision-high",
+  "messages": [{
+    "role": "user",
+    "content": [
+      { "type": "text", "text": "Что на фото?" },
+      { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,/9j/4AAQ..." } }
+    ]
+  }]
+}</code></pre></div>
+      <ul class="tight">
+        <li>Весь запрос вместе с картинками — до <strong>20 МБ</strong>, одна картинка — до ~10 МБ.</li>
+        <li>Ужимать фото заранее не обязательно. Для локальных моделей роутер сам уменьшает картинку до 1024 px по длинной стороне.</li>
+        <li>Запасная локальная модель может ответить на английском, даже если вопрос задан по-русски: на английском она распознаёт заметно точнее. Если язык важен, переведите ответ на своей стороне.</li>
+      </ul>
+    </section>
+
+    <section id="response">
+      <h2>Что приходит в ответе</h2>
+      <p>Помимо обычного ответа OpenAI роутер добавляет свои заголовки:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Заголовок</th><th>Значение</th></tr></thead>
+        <tbody>
+          <tr><td><code>x-pf-backend</code></td><td>Какая модель пула реально ответила. Полезно записывать в свой лог.</td></tr>
+          <tr><td><code>x-pf-backend-model</code></td><td>Название этой модели у провайдера</td></tr>
+          <tr><td><code>x-router-warning</code></td><td><code>missing-metadata</code> — в запросе не хватает обязательных заголовков</td></tr>
+          <tr><td><code>x-router-budget</code></td><td><code>exceeded; reason=…</code> — лимит проекта превышен, ответила запасная модель (см. ниже)</td></tr>
+          <tr><td><code>x-router-loop</code>, <code>retry-after</code></td><td>Приходят вместе с ошибкой <code>429 loop_detected</code> или <code>429 rate_limited</code>: какое правило сработало и сколько секунд ждать</td></tr>
+          <tr><td><code>x-router-context-length</code></td><td>Окно контекста (в токенах) модели, которая реально обслужила запрос. Нет заголовка — окно этой модели неизвестно. Минимальное окно по каждому тиру — поле <code>context_length_min</code> в <code>GET /v1/models</code></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="limits">
+      <h2>Лимиты и защита</h2>
+
+      <h3>Защита от зацикливания</h3>
+      <p>Роутер следит за каждой сессией отдельно, то есть за сочетанием <code>app</code> + <code>agent</code> + <code>session</code>. Сессия блокируется на <strong>10 минут</strong> по правилам <code>volume</code> и <code>repeat</code>. Правило <code>rate</code> не блокирует: это ограничение темпа.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Правило</th><th>Порог</th><th>Что ловит</th></tr></thead>
+        <tbody>
+          <tr><td><code>rate</code></td><td class="num">&gt; 40 запросов за 5 мин (для <code>x-router-agent: worker</code> — &gt; 120)</td><td>слишком частые запросы. Ответ <code>429 rate_limited</code> с <code>Retry-After</code> — через сколько секунд в окне освободится место; после паузы можно повторить</td></tr>
+          <tr><td><code>volume</code></td><td class="num">&gt; 3 млн входных токенов за 10 мин</td><td>на каждом шаге пересылается огромный контекст</td></tr>
+          <tr><td><code>repeat</code></td><td class="num">3 одинаковых сообщения подряд</td><td>агент ходит по кругу (запрос с другим <code>max_tokens</code> считается другим: повтор обрезанного ответа с большим пределом — не цикл; результаты тулов с разными <code>tool_call_id</code> — тоже разные сообщения)</td></tr>
+        </tbody>
+      </table></div>
+      <p>Картинки в base64 при подсчёте объёма не раздувают счёт. Блокируется только одна сессия, остальные сессии проекта работают как обычно.</p>
+      <div class="note bad"><p><strong>Не повторяйте запрос после <code>429 loop_detected</code>.</strong> Это сигнал остановить цикл агента, а не временный сбой. Автоматический повтор только продлит блок.</p></div>
+
+      <h3>Лимит на основную модель</h3>
+      <p>На основную модель (MiniMax) у каждого проекта есть лимит токенов в сутки и в час, а также могут действовать раздельные лимиты на каждого пользователя. Токены считаются с учётом кэша промпта со скидкой (кэшированная часть обходится дешевле), сутки и часы — по UTC. Свой лимит можно уточнить у владельца роутера.</p>
+      <p>Когда лимит превышен, ошибки нет: запрос уходит на запасную модель тира, а в ответе приходит <code>x-router-budget: exceeded; reason=…</code>. Возможные значения <code>reason</code>:</p>
+      <ul class="tight">
+        <li><code>user-hour</code> или <code>user-day</code> — исчерпан часовой или суточный лимит конкретного пользователя;</li>
+        <li><code>tenant-hour</code> или <code>tenant-day</code> — исчерпан часовой или суточный лимит вашего проекта;</li>
+        <li><code>provider-quota</code> — исчерпан реальный остаток квоты у апстрим-провайдера (MiniMax Token Plan, &le;5%);</li>
+        <li><code>global-day</code> или <code>cycle</code> — исчерпана общая норма роутера на сегодня или на месяц.</li>
+      </ul>
+      <p>Ошибка <code>503 budget_exceeded</code> возникает, если у тира не осталось доступных запасных моделей или они вернули ошибку. В тире <code>text-high</code> локальной 7B нет совсем: после MiniMax идут облачные Gemini/Claude, затем flash-lite и deepseek. Если при превышенном лимите ни одна из них не ответила, приходит <code>503 budget_exceeded</code>.</p>
+    </section>
+
+    <section id="quota">
+      <h2>Квота по запросу</h2>
+      <p>Если проекту нужно динамически управлять лимитами токенов на основную модель MiniMax (например, пересчитывать лимит по количеству активных пользователей и их тарифным планам), клиентский портал может запрашивать выделение квоты напрямую через API.</p>
+
+      <h3>Как работает квота</h3>
+      <p>Портал периодически (например, раз в час) рассчитывает сумму суточных токенов по активным пользователям и отправляет запрос <code>PUT /v1/budget/quota</code>. Роутер выделяет запрошенное количество в пределах доступной ёмкости и ограничений владельца.</p>
+      <div class="note info">
+        <p><strong>Сигнал ёмкости:</strong> если <code>granted &lt; requested</code>, в ответе указан параметр <code>limitedBy: "capacity"</code>, <code>limitedBy: "owner-max"</code> или <code>limitedBy: "provider-low"</code>. Значение <code>"provider-low"</code> означает, что доступная суточная ёмкость была уменьшена вдвое из-за низкого остатка квоты провайдера (&le;15%). Это указывает порталу на необходимость замедления фоновых задач или переключения части трафика на внешние модели. Если выделено <code>0</code> на сутки, свободной ёмкости нет: MiniMax для проекта выключен до следующего пересчёта, запросы идут на запасные модели роутера или получают <code>503 budget_exceeded</code>. Это ваш сигнал включить свои прямые запасные модели.</p>
+      </div>
+
+      <h3>Методы API</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Метод</th><th>Адрес</th><th>Что делает</th></tr></thead>
+        <tbody>
+          <tr><td><code>PUT</code></td><td><code>/v1/budget/quota</code></td><td>Запросить или обновить квоту проекта</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/budget/quota</code></td><td>Получить текущую квоту, фактические лимиты и остаток нормы</td></tr>
+          <tr><td><code>DELETE</code></td><td><code>/v1/budget/quota</code></td><td>Сбросить выделенную квоту (вернуться к базовым лимитам)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Пример запроса квоты</h3>
+      <div class="code">
+        <span class="lang">bash</span>
+        <button type="button" data-copy>Скопировать</button>
+        <pre><code>curl -X PUT https://router.example.com/v1/budget/quota \
+  -H "Authorization: Bearer $ROUTER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "day": 20000000,
+    "hour": 5000000,
+    "user": {
+      "day": 1000000,
+      "hour": 250000
+    },
+    "ttlSec": 86400
+  }'</code></pre>
+      </div>
+      <p>Все числа задаются в кэш-взвешенных токенах (положительные целые). Должен быть передан хотя бы один из параметров: <code>day</code>, <code>hour</code> или <code>user</code>. Непереданные параметры сохраняют текущие значения. Время жизни <code>ttlSec</code> по умолчанию составляет 86400 с (24 ч) и ограничивается интервалом от 300 до 604800 с (от 5 мин до 7 дней). По истечении TTL квота автоматически сбрасывается к базовым настройкам.</p>
+      <p>В ответе <code>GET</code> и <code>PUT /v1/budget/quota</code> в блоке <code>cycle.provider</code> возвращается актуальный статус квоты MiniMax: процент недельного (<code>weeklyRemainingPercent</code>) и интервального (<code>intervalRemainingPercent</code>) остатка, окончание окон (<code>weeklyEnd</code>, <code>intervalEnd</code>) и метка времени опроса <code>fetchedAt</code> с признаком свежести <code>fresh</code>.</p>
+
+      <h3>Ограничение частоты (Rate Limit)</h3>
+      <p>Запросы <code>PUT /v1/budget/quota</code> ограничены: <strong>не чаще одного успешного обновления в 60 секунд</strong> для каждого проекта. При более частых запросах возвращается <code>429 quota_rate_limited</code> с заголовком <code>Retry-After</code>. Запросы <code>GET</code> и <code>DELETE</code> не ограничиваются по частоте.</p>
+    </section>
+
+    <section id="errors">
+      <h2>Ошибки</h2>
+      <p>Ошибки приходят в формате OpenAI: <code>{"error": {"message", "type", "code"}}</code>. Проверяйте поле <code>code</code>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>HTTP</th><th><code>code</code></th><th>Что значит</th><th>Что делать</th></tr></thead>
+        <tbody>
+          <tr><td class="num">400</td><td><code>missing_model</code>, <code>missing_messages</code></td><td>В теле нет <code>model</code> или <code>messages</code></td><td>Исправить запрос</td></tr>
+          <tr><td class="num">400</td><td><code>missing_metadata</code></td><td>Нет обязательных заголовков (с 01.10)</td><td>Добавить <code>x-router-*</code></td></tr>
+          <tr><td class="num">401</td><td><code>unauthorized</code></td><td>Нет ключа или ключ неверный</td><td>Проверить ключ</td></tr>
+          <tr><td class="num">403</td><td><code>quota_not_allowed</code></td><td>Проекту не разрешено запрашивать динамическую квоту</td><td>Обратиться к владельцу роутера</td></tr>
+          <tr><td class="num">404</td><td><code>model_not_found</code></td><td>Такого тира нет</td><td>Взять тир из <code>/v1/models</code></td></tr>
+          <tr><td class="num">429</td><td><code>loop_detected</code></td><td>Сессия заблокирована защитой от циклов</td><td><strong>Не повторять</strong>, остановить цикл</td></tr>
+          <tr><td class="num">429</td><td><code>rate_limited</code></td><td>Сессия шлёт запросы быстрее порога <code>rate</code></td><td>Подождать время из <code>Retry-After</code> и повторить</td></tr>
+          <tr><td class="num">429</td><td><code>quota_rate_limited</code></td><td>Запрос квоты отправлен раньше, чем через 60 с после предыдущего</td><td>Подождать время из <code>Retry-After</code></td></tr>
+          <tr><td class="num">502</td><td><code>all_candidates_failed</code></td><td>Не ответила ни одна модель тира</td><td>Повторить через несколько секунд</td></tr>
+          <tr><td class="num">503</td><td><code>budget_exceeded</code></td><td>Лимит превышен, и подходящей запасной модели нет (или запасные недоступны; text-high не падает на локальную модель)</td><td>Подождать до следующего часа или суток по UTC</td></tr>
+          <tr><td class="num">503</td><td><code>tier_unavailable</code>, <code>model_unavailable</code></td><td>В тире сейчас нет доступных моделей</td><td>Повторить позже или взять другой тир</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="practice">
+      <h2>Как не упереться в лимиты</h2>
+      <ul class="tight">
+        <li><strong>Сжимайте контекст в циклах агентов.</strong> Старые результаты инструментов, особенно большие (HTML страниц, логи, выдачу поиска), заменяйте коротким пересказом, а не пересылайте на каждом шаге.</li>
+        <li><strong>Ограничивайте вывод инструментов,</strong> например 10–20 тыс. символов на один вызов. Из HTML извлекайте текст до того, как отдавать его модели.</li>
+        <li><strong>Держите начало промпта неизменным</strong> (system и первые сообщения). Тогда у провайдера срабатывает кэш и повторный контекст обходится дешевле.</li>
+        <li><strong>Ставьте лимит шагов агента</strong> на одно сообщение пользователя и пишите в лог, когда он срабатывает.</li>
+        <li><strong>Для суммаризации берите <code>text-summarize</code>,</strong> а не <code>text-high</code>.</li>
+        <li><strong>Задавайте таймауты с запасом.</strong> При сбое модели роутер сам переходит на следующую, и ответ может прийти через 20–60 секунд.</li>
+      </ul>
+    </section>
+
+    <section id="service">
+      <h2>Служебные адреса</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Адрес</th><th>Ключ</th><th>Что отдаёт</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET /healthz</code></td><td>не нужен</td><td>Жив ли роутер: <code>{"status":"ok"}</code></td></tr>
+          <tr><td><code>GET /v1/models</code></td><td>ваш ключ</td><td>Список тиров с описанием</td></tr>
+          <tr><td><code>POST /v1/chat/completions</code></td><td>ваш ключ</td><td>Генерация, в том числе потоковая</td></tr>
+        </tbody>
+      </table></div>
+      <p>Роутер ничего не хранит: историю диалога вы каждый раз передаёте сами.</p>
+    </section>
+
+    <footer>
+      <p>Если что-то работает не так, пришлите владельцу роутера время запроса (UTC), тир, значения заголовков <code>x-router-*</code> и то, что вернулось в <code>x-pf-backend</code>. Этого хватает, чтобы найти запрос в логах.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.parentElement.querySelector('code');
+      var text = code ? code.innerText : '';
+      var done = function () { btn.textContent = 'Скопировано'; setTimeout(function () { btn.textContent = 'Копировать'; }, 1500); };
+      var fallback = function () {
+        var range = document.createRange();
+        range.selectNodeContents(code);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        btn.textContent = 'Выделено — Ctrl+C';
+      };
+      try {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } catch (e) { fallback(); }
+    });
+  });
+</script>
+</body>
+</html>

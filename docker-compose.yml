@@ -1,0 +1,56 @@
+# model-router — standalone stack.
+#
+# Replaces the ad-hoc `docker run` the router used to live under. Bringing it up
+# with compose fixes the old failure mode: the router↔portal network link
+# survived a `restart` but not a `recreate`, because nothing re-attached the
+# container to the portal's network. Here the network is declared, so a recreate
+# reattaches it every time.
+#
+# Host port 4300 → container 4200: on prod-host the portal's own calls service
+# already owns 4200 on the host, so the router publishes on 4300. nginx /
+# router.example.com proxies to 127.0.0.1:4300.
+
+services:
+  model-router:
+    build: .
+    image: model-router:local
+    container_name: model-router
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:4300:4200"
+    volumes:
+      # Budget counters survive recreate
+      - ./data:/app/data
+    networks:
+      default: {}
+      portal:
+        # The portal reaches the router by DNS name on its network. Its DB route
+        # config points at http://pf-model-router:4200/v1 (the legacy ad-hoc
+        # container's name), so we answer to that name via an alias — the cutover
+        # is transparent and needs no portal change. Drop this alias once the
+        # portal's model.route.* is repointed at `model-router` (or ai-router).
+        aliases:
+          - pf-model-router
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4200/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  default:
+  # The portal's existing docker network, so clients on prod-host (the portal, other
+  # services) can reach the router by container name. Confirm the real name with
+  # `docker network ls` on prod-host and set ROUTER_PORTAL_NETWORK in .env; the
+  # default matches the portal compose project's default network.
+  portal:
+    external: true
+    name: ${ROUTER_PORTAL_NETWORK:-portal_default}
